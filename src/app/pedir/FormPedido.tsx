@@ -77,7 +77,7 @@ export function FormPedido({
   const [erroGeral, setErroGeral] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState<{ numero: string; link: string } | null>(null);
-  const { eventos, recarregar } = useEventosDoDia(c.data);
+  const { eventos, bloqueio, recarregar } = useEventosDoDia(c.data);
 
   const mudar = <K extends keyof Campos>(campo: K, valor: Campos[K]) => {
     setC((atual) => ({ ...atual, [campo]: valor }));
@@ -245,6 +245,11 @@ export function FormPedido({
         <label htmlFor="campo-data" className="rotulo">Data</label>
         <input {...attrs("data")} className="campo" type="date" min={hoje} value={c.data} onChange={(e) => mudar("data", e.target.value)} />
         {erro("data")}
+        {bloqueio && (
+          <div className="mt-2">
+            <Aviso tipo="aviso">Este dia está marcado como “{bloqueio}”. Você pode pedir, mas a secretaria pode não aprovar.</Aviso>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">

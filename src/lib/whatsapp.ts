@@ -83,6 +83,26 @@ export function mensagemAprovada(
   return linhas.join("\n");
 }
 
+export function mensagemSerieAprovada(p: {
+  descricao: string;
+  sala: string;
+  pastoral: string;
+  horario: string;
+  datas: string[]; // "12/11/2026"...
+  buscarChave: boolean;
+}) {
+  const mostrar = p.datas.slice(0, 12);
+  const linhas = [
+    `*Reserva APROVADA* — ${p.descricao}`,
+    `Sala: ${p.sala}`,
+    `Horário: ${p.horario}`,
+    `Pastoral: ${p.pastoral}`,
+    `Datas (${p.datas.length}): ${mostrar.join(", ")}${p.datas.length > mostrar.length ? "..." : ""}`,
+  ];
+  if (p.buscarChave) linhas.push("*BUSCAR A CHAVE NA SECRETARIA* antes do horário.");
+  return linhas.join("\n");
+}
+
 export function mensagemNaoAprovada(p: DadosRetorno & { motivo: string }) {
   const motivo = p.motivo.trim().replace(/\.?$/, ".");
   return [

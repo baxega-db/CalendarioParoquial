@@ -9,12 +9,14 @@ export function VisaoMes({
   mes,
   hoje,
   eventosPorDia,
+  bloqueadas,
   aoAbrir,
 }: {
   inicioGrade: string;
   mes: string; // "AAAA-MM"
   hoje: string;
   eventosPorDia: Map<string, EventoComSala[]>;
+  bloqueadas: Record<string, string>;
   aoAbrir: (e: EventoComSala) => void;
 }) {
   const dias = Array.from({ length: 42 }, (_, i) => somarDias(inicioGrade, i));
@@ -51,6 +53,12 @@ export function VisaoMes({
                 {/* No celular a célula é estreita: mostramos só a quantidade. */}
                 {eventos.length > 0 && <span className="font-semibold md:hidden">{eventos.length}</span>}
               </Link>
+              {bloqueadas[dia] && (
+                <p className="mb-1 truncate font-semibold text-aviso" title={bloqueadas[dia]}>
+                  <span className="md:hidden">Bloq.</span>
+                  <span className="hidden md:inline">{bloqueadas[dia]}</span>
+                </p>
+              )}
               <ul className="hidden space-y-1 md:block">
                 {eventos.slice(0, MAX_NO_DIA).map((ev) => {
                   const pendente = ev.situacao === "pendente";

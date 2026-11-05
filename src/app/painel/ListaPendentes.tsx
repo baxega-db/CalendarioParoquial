@@ -12,7 +12,7 @@ import { formatarTelefone, numeroPedido } from "@/lib/whatsapp";
 import { confirmarPedido, recusarPedido, type Resultado } from "./acoes";
 import { CampoChave, CamposPeriodo, JanelaRetorno, type Periodo } from "./componentes";
 
-type Retorno = { titulo: string; mensagem: string; link: string | null };
+type Retorno = { titulo: string; mensagem: string; link: string | null; proximo?: { href: string; texto: string } };
 
 export function ListaPendentes({ pedidos, salas }: { pedidos: Reserva[]; salas: Sala[] }) {
   const [retorno, setRetorno] = useState<Retorno | null>(null);
@@ -53,15 +53,25 @@ function CartaoPendente({
   const sala = salas.find((s) => s.id === pedido.sala_id);
   const sit = eventos ? situacaoDaSala(eventos, pedido.sala_id, pedido.inicio, pedido.fim, pedido.id) : null;
 
-  function tratar(r: Resultado, titulo: string) {
+  function tratar(r: Resultado, titulo: string, confirmado = false) {
     if ("erro" in r) setErro(r.erro);
-    else aoConcluir({ titulo, mensagem: r.mensagem, link: r.link });
+    else
+      aoConcluir({
+        titulo,
+        mensagem: r.mensagem,
+        link: r.link,
+        // Pedido com repetição: atalho para criar as próximas datas da série.
+        proximo:
+          confirmado && pedido.recorrencia_pedida
+            ? { href: `/painel/reservas/nova?copiar=${pedido.id}`, texto: "Criar as próximas datas da repetição" }
+            : undefined,
+      });
   }
 
   function confirmar(p: Periodo) {
     setErro("");
     iniciar(async () => {
-      tratar(await confirmarPedido({ id: pedido.id, buscarChave: chave, ...p }), `Pedido nº ${numeroPedido(pedido.id)} confirmado`);
+      tratar(await confirmarPedido({ id: pedido.id, buscarChave: chave, ...p }), `Pedido nº ${numeroPedido(pedido.id)} confirmado`, true);
     });
   }
 

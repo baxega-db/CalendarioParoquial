@@ -84,8 +84,22 @@ atualize a *Site URL* do Supabase com o endereço final.
 - `src/lib` — acesso ao Supabase, datas no fuso de São Paulo, mensagens de WhatsApp.
 - `supabase/migrations` — banco de dados com as regras de acesso.
 
-## Próximas fases
+## Fase 2 (recorrência e rotina)
 
-- **Fase 2**: recorrências completas com exceções, datas bloqueadas, tela de histórico
-  (o banco já grava o histórico desde a Fase 1).
+- **Reservas que se repetem** (em *Nova reserva > Repetir*): toda semana ou a cada 2
+  semanas, em dias da semana escolhidos, todo mês por posição ("toda 3ª terça",
+  "último sábado") ou por dia ("todo dia 15"); término por data ou por número de encontros.
+- Antes de salvar, a lista de datas mostra conflitos e datas bloqueadas; em cada data dá
+  para pular ou trocar a sala. A série inteira é salva de uma vez (ou nada, se alguma data
+  for ocupada nesse meio-tempo).
+- Ao editar ou cancelar um encontro de série: **só este**, **este e os próximos** ou **todos**.
+- **Datas bloqueadas** (Administração): feriados e períodos, mostrados na agenda e pulados
+  nas repetições. Já vêm cadastrados os feriados nacionais e o Tríduo Pascal até 2027;
+  feriados da cidade precisam ser acrescentados.
+- **Histórico**: quem criou, aprovou, alterou ou cancelou cada reserva (menu Secretaria e
+  na tela de cada reserva).
+- Pedido confirmado que tinha "É recorrente? Sim" oferece o atalho "Criar as próximas datas".
+
+## Próxima fase
+
 - **Fase 3**: impressão da semana, modo TV, domínio da paróquia.

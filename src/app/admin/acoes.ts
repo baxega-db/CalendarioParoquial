@@ -6,6 +6,7 @@ import type { EstadoForm } from "@/app/acoes-auth";
 import { exigirAdmin } from "@/lib/dados";
 import { criarClienteServico, criarClienteServidor } from "@/lib/supabase/server";
 import { RECURSOS } from "@/lib/tipos";
+import { somarDias } from "@/lib/tempo";
 import { soDigitos } from "@/lib/whatsapp";
 
 const texto = (dados: FormData, campo: string) => String(dados.get(campo) ?? "").trim();
@@ -131,4 +132,36 @@ export async function limparDadosPessoais(_: EstadoForm, dados: FormData): Promi
   const { data, error } = await supabase.rpc("limpar_dados_pessoais", { p_antes_de: antes });
   if (error) return { erro: "Não foi possível limpar os dados." };
   return { ok: `Pronto: nome e telefone apagados de ${data ?? 0} pedido(s).` };
+}
+
+// ---------------------------------------------------------------- Datas bloqueadas
+
+export async function bloquearDatas(_: EstadoForm, dados: FormData): Promise<EstadoForm> {
+  await exigirAdmin();
+  const de = texto(dados, "de");
+  const ate = texto(dados, "ate") || de;
+  const descricao = texto(dados, "descricao");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(de) || !/^\d{4}-\d{2}-\d{2}$/.test(ate) || ate < de) return { erro: "Confira as datas." };
+  if (!descricao) return { erro: "Escreva o motivo (ex.: Natal, Semana Santa)." };
+
+  const datas: string[] = [];
+  for (let d = de; d <= ate && datas.length <= 62; d = somarDias(d, 1)) datas.push(d);
+  if (datas.length > 62) return { erro: "Escolha um período de até 2 meses." };
+
+  const supabase = await criarClienteServidor();
+  const { error } = await supabase
+    .from("datas_bloqueadas")
+    .upsert(datas.map((data) => ({ data, descricao })), { onConflict: "data" });
+  if (error) return { erro: "Não foi possível salvar." };
+  revalidatePath("/", "layout");
+  return { ok: datas.length === 1 ? "Data bloqueada." : `${datas.length} datas bloqueadas.` };
+}
+
+export async function desbloquearData(id: string): Promise<EstadoForm> {
+  await exigirAdmin();
+  const supabase = await criarClienteServidor();
+  const { error } = await supabase.from("datas_bloqueadas").delete().eq("id", id);
+  if (error) return { erro: "Não foi possível remover." };
+  revalidatePath("/", "layout");
+  return { ok: "Data liberada." };
 }

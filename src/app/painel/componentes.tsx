@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { horario } from "@/components/agenda/comum";
 import { Aviso } from "@/components/Aviso";
@@ -18,14 +19,18 @@ export function CamposPeriodo({
   aoMudar,
   ignorarId,
   pessoas,
+  rotuloData = "Data",
+  travarData,
 }: {
   salas: Sala[];
   valor: Periodo;
   aoMudar: (p: Periodo) => void;
   ignorarId?: number;
   pessoas?: number;
+  rotuloData?: string;
+  travarData?: string; // texto explicando por que a data não pode mudar
 }) {
-  const { eventos } = useEventosDoDia(valor.data);
+  const { eventos, bloqueio } = useEventosDoDia(valor.data);
   const ok = valor.data && valor.inicio && valor.fim && horaParaMinutos(valor.fim) > horaParaMinutos(valor.inicio);
   const sit =
     ok && eventos && valor.salaId
@@ -48,8 +53,16 @@ export function CamposPeriodo({
         </select>
       </div>
       <div>
-        <label htmlFor={`${id}-data`} className="rotulo">Data</label>
-        <input id={`${id}-data`} type="date" className="campo" value={valor.data} onChange={(e) => aoMudar({ ...valor, data: e.target.value })} />
+        <label htmlFor={`${id}-data`} className="rotulo">{rotuloData}</label>
+        <input
+          id={`${id}-data`}
+          type="date"
+          className="campo"
+          value={valor.data}
+          disabled={!!travarData}
+          onChange={(e) => aoMudar({ ...valor, data: e.target.value })}
+        />
+        {travarData && <p className="mt-1">{travarData}</p>}
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -62,6 +75,7 @@ export function CamposPeriodo({
         </div>
       </div>
       <div aria-live="polite" className="space-y-2">
+        {bloqueio && <Aviso tipo="aviso">Data bloqueada: {bloqueio}</Aviso>}
         {valor.inicio && valor.fim && !ok && <Aviso tipo="erro">O término precisa ser depois do início.</Aviso>}
         {sit?.tipo === "livre" && <Aviso tipo="sucesso">Sala livre neste horário.</Aviso>}
         {sit?.tipo === "pendente" && (
@@ -104,13 +118,17 @@ export function CampoChave({ valor, aoMudar, nome }: { valor: boolean; aoMudar: 
 // Depois de confirmar ou não aprovar: botão para abrir o WhatsApp de quem pediu.
 export function JanelaRetorno({
   titulo,
+  resumo,
   mensagem,
   link,
+  proximo,
   aoFechar,
 }: {
   titulo: string;
+  resumo?: string;
   mensagem: string;
   link: string | null;
+  proximo?: { href: string; texto: string };
   aoFechar: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -121,6 +139,7 @@ export function JanelaRetorno({
     <dialog ref={ref} onClose={aoFechar} className="m-auto w-[min(36rem,calc(100%-1.5rem))] rounded-2xl p-0 backdrop:bg-black/60">
       <div className="space-y-4 p-5">
         <h2 className="text-2xl font-extrabold">{titulo}</h2>
+        {resumo && <Aviso tipo="sucesso">{resumo}</Aviso>}
         {mensagem && (
           <>
             <p className="font-bold">Mensagem pronta:</p>
@@ -133,6 +152,11 @@ export function JanelaRetorno({
           </a>
         ) : (
           mensagem && <Aviso tipo="aviso">Este pedido não tem telefone. Avise a pessoa de outra forma.</Aviso>
+        )}
+        {proximo && (
+          <Link href={proximo.href} className="botao botao-primario w-full">
+            {proximo.texto}
+          </Link>
         )}
         <button type="button" className="botao botao-secundario w-full" onClick={aoFechar}>
           Fechar

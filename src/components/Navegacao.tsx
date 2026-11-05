@@ -27,12 +27,14 @@ function montarItens({ usuario, pendentes }: Props) {
     ? [
         { href: "/painel", texto: "Pedidos pendentes", icone: "pedidos", contador: pendentes },
         { href: "/painel/reservas", texto: "Reservas", icone: "reservas" },
+        { href: "/painel/historico", texto: "Histórico", icone: "relogio" },
       ]
     : [];
   const admin: Item[] =
     usuario?.perfil === "admin"
       ? [
           { href: "/admin/salas", texto: "Cadastro de salas", icone: "sala" },
+          { href: "/admin/datas", texto: "Datas bloqueadas", icone: "agenda" },
           { href: "/admin/usuarios", texto: "Usuários", icone: "usuarios" },
           { href: "/admin/configuracoes", texto: "Configurações", icone: "config" },
         ]

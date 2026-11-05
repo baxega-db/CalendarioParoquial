@@ -78,3 +78,16 @@ export const contarPendentes = cache(async () => {
     .eq("situacao", "pendente");
   return count ?? 0;
 });
+
+export type DataBloqueada = { id: string; data: string; descricao: string };
+
+export async function listarBloqueadas(de: string, ate: string): Promise<DataBloqueada[]> {
+  const supabase = await criarClienteServidor();
+  const { data } = await supabase
+    .from("datas_bloqueadas")
+    .select("id, data, descricao")
+    .gte("data", de)
+    .lt("data", ate)
+    .order("data");
+  return data ?? [];
+}

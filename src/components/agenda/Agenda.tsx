@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { Aviso } from "@/components/Aviso";
 import { Icone } from "@/components/Icone";
 import type { EventoPublico, Sala } from "@/lib/tipos";
 import {
@@ -44,6 +45,7 @@ type Props = {
   eventos: EventoPublico[];
   abertura: string;
   fechamento: string;
+  bloqueadas: Record<string, string>; // data -> motivo
 };
 
 export function Agenda(props: Props) {
@@ -178,6 +180,10 @@ export function Agenda(props: Props) {
 
       {salas.length === 0 && <p className="cartao">Nenhuma sala cadastrada ainda.</p>}
 
+      {(visao === "hoje" || visao === "sala") && props.bloqueadas[data] && (
+        <Aviso tipo="aviso">Data bloqueada: {props.bloqueadas[data]}</Aviso>
+      )}
+
       {visao === "hoje" && <ListaEventos eventos={porDia.get(data) ?? []} aoAbrir={setAberto} />}
 
       {visao === "sala" && (
@@ -204,6 +210,7 @@ export function Agenda(props: Props) {
                   {formatarDataLonga(dia)}
                   {dia === hoje && " (hoje)"}
                 </h3>
+                {props.bloqueadas[dia] && <p className="mb-2 font-bold text-aviso">Data bloqueada: {props.bloqueadas[dia]}</p>}
                 <ListaEventos eventos={porDia.get(dia) ?? []} aoAbrir={setAberto} vazio="Nada marcado." />
               </section>
             ))}
@@ -220,6 +227,7 @@ export function Agenda(props: Props) {
                 titulo: (
                   <Link href={link("hoje", dia)} className={`underline-offset-2 hover:underline ${dia === hoje ? "text-primaria" : ""}`}>
                     {DIAS_CURTOS[diaDaSemana(dia)]} {Number(dia.slice(8))}
+                    {props.bloqueadas[dia] && <span className="block font-semibold text-aviso">{props.bloqueadas[dia]}</span>}
                   </Link>
                 ),
                 eventos: porDia.get(dia) ?? [],
@@ -236,6 +244,7 @@ export function Agenda(props: Props) {
           mes={data.slice(0, 7)}
           hoje={hoje}
           eventosPorDia={porDia}
+          bloqueadas={props.bloqueadas}
           aoAbrir={setAberto}
         />
       )}

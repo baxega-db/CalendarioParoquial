@@ -3,6 +3,7 @@ import { NomeSala } from "@/components/agenda/comum";
 import { Icone } from "@/components/Icone";
 import { exigirEquipe, listarSalas } from "@/lib/dados";
 import { criarClienteServidor } from "@/lib/supabase/server";
+import { descreverRegra, type Regra } from "@/lib/recorrencia";
 import type { Reserva } from "@/lib/tipos";
 import { ehDataValida, formatarDataLonga, formatarHora, hojeISO, intervaloDias, partesLocais } from "@/lib/tempo";
 import { formatarTelefone, numeroPedido } from "@/lib/whatsapp";
@@ -22,17 +23,18 @@ export default async function PaginaReservas({ searchParams }: { searchParams: P
   const [{ data }, salas] = await Promise.all([
     supabase
       .from("reservas")
-      .select("*")
+      .select("*, series(regra, data_inicio)")
       .eq("situacao", "confirmada")
       .lt("inicio", intervalo.ate)
       .gt("fim", intervalo.de)
       .order("inicio"),
     listarSalas(true),
   ]);
-  const reservas = (data ?? []) as Reserva[];
+  type ComSerie = Reserva & { serie_id: string | null; series: { regra: Regra; data_inicio: string } | null };
+  const reservas = (data ?? []) as ComSerie[];
   const mapaSalas = new Map(salas.map((s) => [s.id, s]));
 
-  const porDia = new Map<string, Reserva[]>();
+  const porDia = new Map<string, ComSerie[]>();
   for (const r of reservas) {
     const dia = partesLocais(r.inicio).data;
     porDia.set(dia, [...(porDia.get(dia) ?? []), r]);
@@ -74,6 +76,9 @@ export default async function PaginaReservas({ searchParams }: { searchParams: P
                 <p>
                   {r.responsavel ?? "—"} {r.telefone && `— ${formatarTelefone(r.telefone)}`}
                 </p>
+                {r.series && (
+                  <p className="font-semibold">Repete: {descreverRegra(r.series.regra, r.series.data_inicio)}</p>
+                )}
                 {r.buscar_chave && (
                   <p className="flex items-center gap-1 font-semibold">
                     <Icone nome="chave" /> Buscar a chave na secretaria
@@ -83,7 +88,7 @@ export default async function PaginaReservas({ searchParams }: { searchParams: P
                   <Link href={`/painel/reservas/${r.id}`} className="botao botao-secundario">
                     <Icone nome="lapis" /> Editar
                   </Link>
-                  <BotaoCancelar id={r.id} />
+                  <BotaoCancelar id={r.id} emSerie={!!r.serie_id} />
                 </div>
               </article>
             );
