@@ -100,6 +100,15 @@ atualize a *Site URL* do Supabase com o endereço final.
   na tela de cada reserva).
 - Pedido confirmado que tinha "É recorrente? Sim" oferece o atalho "Criar as próximas datas".
 
+## Horários de missa
+
+- **Cadastro** (Secretaria > *Missas*): horários fixos (toda semana nos dias escolhidos,
+  "toda 1ª sexta", "todo dia 13"), com local (matriz ou capela) e observação; missas
+  adicionais numa data; e "Não haverá nesta data" para tirar uma missa fixa só num dia.
+- **Onde aparecem**: na agenda (Dia, Por sala, Semana e Mês no computador), no modo TV
+  ("Missas de hoje"), na folha impressa e na página pública *Horários de missa* (`/missas`).
+- As missas não ocupam salas; ficam separadas das reservas.
+
 ## Fase 3 (extras)
 
 - **Imprimir a semana** (`/imprimir`, também no botão da visão Semana): folha A4 deitada

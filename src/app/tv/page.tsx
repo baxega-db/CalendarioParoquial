@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { listarBloqueadas, listarEventos, listarSalas, obterConfig } from "@/lib/dados";
+import { listarBloqueadas, listarEventos, listarMissas, listarSalas, obterConfig } from "@/lib/dados";
+import { DURACAO_MISSA_MIN } from "@/lib/missas";
 import type { EventoPublico, Sala } from "@/lib/tipos";
-import { formatarDataLonga, formatarHora, hojeISO, intervaloDias, partesLocais, somarDias } from "@/lib/tempo";
+import { formatarDataLonga, formatarHora, hojeISO, horaParaMinutos, intervaloDias, partesLocais, somarDias } from "@/lib/tempo";
 import { formatarTelefone } from "@/lib/whatsapp";
 import { ControlesTV } from "./ControlesTV";
 
@@ -42,12 +43,16 @@ export default async function PaginaTV() {
   const hoje = hojeISO();
   const amanha = somarDias(hoje, 1);
   const { de, ate } = intervaloDias(hoje, 2);
-  const [salas, eventos, config, bloqueadas] = await Promise.all([
+  const [salas, eventos, config, bloqueadas, missasHoje] = await Promise.all([
     listarSalas(),
     listarEventos(de, ate),
     obterConfig(),
     listarBloqueadas(hoje, somarDias(hoje, 2)),
+    listarMissas(hoje, amanha),
   ]);
+  const minutosAgora = partesLocais(agora).minutos;
+  // Missas que ainda não terminaram (contamos 1 hora de duração).
+  const missas = missasHoje.filter((m) => horaParaMinutos(m.hora) + DURACAO_MISSA_MIN > minutosAgora);
 
   const mapaSalas = new Map(salas.map((s) => [s.id, s]));
   const confirmados = eventos.filter((e) => e.situacao === "confirmada" && mapaSalas.has(e.sala_id));
@@ -102,7 +107,28 @@ export default async function PaginaTV() {
           )}
         </section>
 
-        <section>
+        <section className="space-y-[1em]">
+          {missas.length > 0 && (
+            <div className="rounded-[0.5em] border-2 border-amber-200/70 bg-amber-100/10 p-[0.6em]">
+              <h2 className="mb-[0.3em] text-[1.4em] font-extrabold">Missas de hoje</h2>
+              <ul className="space-y-[0.3em]">
+                {missas.map((m) => {
+                  const agoraMissa = horaParaMinutos(m.hora) <= minutosAgora;
+                  return (
+                    <li key={m.chave} className="flex flex-wrap items-baseline gap-x-[0.5em]">
+                      <span className="text-[1.3em] font-extrabold tabular-nums">{formatarHora(m.hora)}</span>
+                      <span className="font-semibold">{m.local}</span>
+                      {m.descricao && <span className="text-white/80">({m.descricao})</span>}
+                      {agoraMissa && (
+                        <span className="rounded-[0.3em] bg-amber-300 px-[0.4em] font-extrabold text-black">AGORA</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+          <div>
           <h2 className="mb-[0.5em] text-[1.4em] font-extrabold">Salas livres agora</h2>
           {livres.length === 0 ? (
             <p>Todas as salas estão ocupadas.</p>
@@ -118,6 +144,7 @@ export default async function PaginaTV() {
               ))}
             </ul>
           )}
+          </div>
         </section>
       </div>
 

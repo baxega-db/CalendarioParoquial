@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DIAS_CURTOS, formatarDataLonga, formatarHora, partesLocais, somarDias } from "@/lib/tempo";
+import { resumoDoDia, type Missa } from "@/lib/missas";
 import { estiloEvento, type EventoComSala } from "./comum";
 
 const MAX_NO_DIA = 3;
@@ -10,6 +11,7 @@ export function VisaoMes({
   hoje,
   eventosPorDia,
   bloqueadas,
+  missasPorDia,
   aoAbrir,
 }: {
   inicioGrade: string;
@@ -17,6 +19,7 @@ export function VisaoMes({
   hoje: string;
   eventosPorDia: Map<string, EventoComSala[]>;
   bloqueadas: Record<string, string>;
+  missasPorDia: Map<string, Missa[]>;
   aoAbrir: (e: EventoComSala) => void;
 }) {
   const dias = Array.from({ length: 42 }, (_, i) => somarDias(inicioGrade, i));
@@ -57,6 +60,11 @@ export function VisaoMes({
                 <p className="mb-1 truncate font-semibold text-aviso" title={bloqueadas[dia]}>
                   <span className="md:hidden">Bloq.</span>
                   <span className="hidden md:inline">{bloqueadas[dia]}</span>
+                </p>
+              )}
+              {missasPorDia.get(dia) && (
+                <p className="mb-1 hidden truncate font-semibold text-[#7c2d12] md:block" title={`Missas: ${resumoDoDia(missasPorDia.get(dia)!)}`}>
+                  Missas: {resumoDoDia(missasPorDia.get(dia)!)}
                 </p>
               )}
               <ul className="hidden space-y-1 md:block">

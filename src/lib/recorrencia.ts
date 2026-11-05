@@ -77,6 +77,9 @@ export function descreverRegra(regra: Regra, inicio: string) {
     case "dias_semana": {
       const dias = [...regra.dias].sort();
       if (dias.length === 7) return "Todos os dias";
+      if (dias.join() === "1,2,3,4,5") return "De segunda a sexta";
+      if (dias.join() === "1,2,3,4,5,6") return "De segunda a sábado";
+      if (dias.length === 1) return `${masculino(dias[0]) ? "Todo" : "Toda"} ${NOMES_DIAS[dias[0]]}`;
       return `Toda semana: ${lista(dias.map((d) => CURTOS[d]))}`;
     }
     case "semanal": {

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { NomeSala } from "@/components/agenda/comum";
 import { Icone } from "@/components/Icone";
-import { listarBloqueadas, listarEventos, listarSalas, obterConfig } from "@/lib/dados";
+import { listarBloqueadas, listarEventos, listarMissas, listarSalas, obterConfig } from "@/lib/dados";
+import { agruparPorDia, resumoDoDia } from "@/lib/missas";
 import {
   ehDataValida,
   formatarDataLonga,
@@ -23,12 +24,14 @@ export default async function PaginaImprimir({ searchParams }: { searchParams: P
   const inicio = inicioDaSemana(ehDataValida(d) ? d : hojeISO());
   const fimSemana = somarDias(inicio, 6);
   const { de, ate } = intervaloDias(inicio, 7);
-  const [salas, eventos, config, bloqueadas] = await Promise.all([
+  const [salas, eventos, config, bloqueadas, missas] = await Promise.all([
     listarSalas(),
     listarEventos(de, ate),
     obterConfig(),
     listarBloqueadas(inicio, somarDias(inicio, 7)),
+    listarMissas(inicio, somarDias(inicio, 7)),
   ]);
+  const missasPorDia = agruparPorDia(missas);
 
   const mapaSalas = new Map(salas.map((s) => [s.id, s]));
   const bloqueio = new Map(bloqueadas.map((b) => [b.data, b.descricao]));
@@ -75,6 +78,7 @@ export default async function PaginaImprimir({ searchParams }: { searchParams: P
               <section key={dia} className="break-inside-avoid border-t-4 border-texto pt-1">
                 <h3 className="font-extrabold first-letter:uppercase">{formatarDataLonga(dia)}</h3>
                 {bloqueio.get(dia) && <p className="font-bold">✕ {bloqueio.get(dia)}</p>}
+                {missasPorDia.get(dia) && <p className="mb-1 font-bold">Missas: {resumoDoDia(missasPorDia.get(dia)!)}</p>}
                 {doDia.length === 0 && <p className="text-suave">—</p>}
                 <ul className="space-y-2">
                   {doDia.map((ev) => {

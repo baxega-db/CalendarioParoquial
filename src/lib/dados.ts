@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "./supabase/server";
+import { missasNoPeriodo, type Missa, type MissaAvulsa, type MissaPadrao } from "./missas";
 import type { Configuracoes, EventoPublico, Perfil, Sala } from "./tipos";
 
 export type UsuarioAtual = { id: string; nome: string; email: string; perfil: Perfil };
@@ -90,4 +91,20 @@ export async function listarBloqueadas(de: string, ate: string): Promise<DataBlo
     .lt("data", ate)
     .order("data");
   return data ?? [];
+}
+
+export const listarMissasCadastro = cache(async () => {
+  const supabase = await criarClienteServidor();
+  const { data } = await supabase.from("missas_padrao").select("*").order("hora");
+  return (data ?? []) as MissaPadrao[];
+});
+
+// Missas de cada dia do período (datas "AAAA-MM-DD", fim exclusivo).
+export async function listarMissas(de: string, ate: string, incluirCanceladas = false): Promise<Missa[]> {
+  const supabase = await criarClienteServidor();
+  const [padroes, { data: avulsas }] = await Promise.all([
+    listarMissasCadastro(),
+    supabase.from("missas_avulsas").select("*").gte("data", de).lt("data", ate),
+  ]);
+  return missasNoPeriodo(padroes, (avulsas ?? []) as MissaAvulsa[], de, ate, incluirCanceladas);
 }

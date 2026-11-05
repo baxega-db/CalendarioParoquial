@@ -17,7 +17,9 @@ import {
   somarMeses,
 } from "@/lib/tempo";
 import { usePreferenciaLocal } from "@/lib/usePreferenciaLocal";
+import { agruparPorDia, resumoDoDia, type Missa } from "@/lib/missas";
 import { NomeSala, type EventoComSala } from "./comum";
+import { MissasDoDia } from "./Missas";
 import { DetalheEvento } from "./DetalheEvento";
 import { GradeHorario, type Coluna } from "./GradeHorario";
 import { ListaEventos } from "./ListaEventos";
@@ -46,6 +48,7 @@ type Props = {
   abertura: string;
   fechamento: string;
   bloqueadas: Record<string, string>; // data -> motivo
+  missas: Missa[];
 };
 
 export function Agenda(props: Props) {
@@ -82,6 +85,8 @@ export function Agenda(props: Props) {
     }
     return mapa;
   }, [props.eventos, salas, ocultas]);
+
+  const missasPorDia = useMemo(() => agruparPorDia(props.missas), [props.missas]);
 
   const passo = { hoje: 1, sala: 1, semana: 7, mes: 0 }[visao];
   const anterior = visao === "mes" ? somarMeses(data, -1) : somarDias(data, -passo);
@@ -184,6 +189,8 @@ export function Agenda(props: Props) {
         <Aviso tipo="aviso">Data bloqueada: {props.bloqueadas[data]}</Aviso>
       )}
 
+      {(visao === "hoje" || visao === "sala") && <MissasDoDia missas={missasPorDia.get(data) ?? []} />}
+
       {visao === "hoje" && <ListaEventos eventos={porDia.get(data) ?? []} aoAbrir={setAberto} />}
 
       {visao === "sala" && (
@@ -214,6 +221,7 @@ export function Agenda(props: Props) {
                   {dia === hoje && " (hoje)"}
                 </h3>
                 {props.bloqueadas[dia] && <p className="mb-2 font-bold text-aviso">Data bloqueada: {props.bloqueadas[dia]}</p>}
+                {missasPorDia.get(dia) && <p className="mb-2 font-bold text-[#7c2d12]">Missas: {resumoDoDia(missasPorDia.get(dia)!)}</p>}
                 <ListaEventos eventos={porDia.get(dia) ?? []} aoAbrir={setAberto} vazio="Nada marcado." />
               </section>
             ))}
@@ -231,6 +239,9 @@ export function Agenda(props: Props) {
                   <Link href={link("hoje", dia)} className={`underline-offset-2 hover:underline ${dia === hoje ? "text-primaria" : ""}`}>
                     {DIAS_CURTOS[diaDaSemana(dia)]} {Number(dia.slice(8))}
                     {props.bloqueadas[dia] && <span className="block font-semibold text-aviso">{props.bloqueadas[dia]}</span>}
+                    {missasPorDia.get(dia) && (
+                      <span className="block font-semibold text-[#7c2d12]">Missas: {resumoDoDia(missasPorDia.get(dia)!)}</span>
+                    )}
                   </Link>
                 ),
                 eventos: porDia.get(dia) ?? [],
@@ -248,6 +259,7 @@ export function Agenda(props: Props) {
           hoje={hoje}
           eventosPorDia={porDia}
           bloqueadas={props.bloqueadas}
+          missasPorDia={missasPorDia}
           aoAbrir={setAberto}
         />
       )}

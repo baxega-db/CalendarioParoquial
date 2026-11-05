@@ -22,11 +22,13 @@ function montarItens({ usuario, pendentes }: Props) {
     { href: "/pedir", texto: "Pedir uma sala", icone: "mais" },
     { href: "/livres", texto: "Salas livres agora", icone: "porta" },
     { href: "/salas", texto: "Conhecer as salas", icone: "sala" },
+    { href: "/missas", texto: "Horários de missa", icone: "relogio" },
   ];
   const equipe: Item[] = usuario
     ? [
         { href: "/painel", texto: "Pedidos pendentes", icone: "pedidos", contador: pendentes },
         { href: "/painel/reservas", texto: "Reservas", icone: "reservas" },
+        { href: "/painel/missas", texto: "Missas", icone: "agenda" },
         { href: "/painel/historico", texto: "Histórico", icone: "relogio" },
         { href: "/imprimir", texto: "Imprimir a semana", icone: "impressora" },
         { href: "/tv", texto: "Modo TV", icone: "tv" },
