@@ -28,6 +28,8 @@ function montarItens({ usuario, pendentes }: Props) {
         { href: "/painel", texto: "Pedidos pendentes", icone: "pedidos", contador: pendentes },
         { href: "/painel/reservas", texto: "Reservas", icone: "reservas" },
         { href: "/painel/historico", texto: "Histórico", icone: "relogio" },
+        { href: "/imprimir", texto: "Imprimir a semana", icone: "impressora" },
+        { href: "/tv", texto: "Modo TV", icone: "tv" },
       ]
     : [];
   const admin: Item[] =
@@ -137,7 +139,7 @@ export function Navegacao(props: Props) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-borda/40 bg-superficie md:col-span-2">
+      <header className="sticky top-0 z-30 border-b border-borda/40 bg-superficie md:col-span-2 print:hidden">
         <div className="mx-auto flex max-w-screen-2xl items-center gap-3 px-4 py-2">
           <Link href="/" className="mr-auto text-xl font-extrabold leading-tight text-primaria">
             {props.nomeParoquia}
@@ -156,7 +158,7 @@ export function Navegacao(props: Props) {
         </div>
       </header>
 
-      <aside className="hidden w-72 shrink-0 border-r border-borda/40 bg-superficie p-4 md:block">
+      <aside className="hidden w-72 shrink-0 border-r border-borda/40 bg-superficie p-4 md:block print:hidden">
         <div className="sticky top-24">
           <Grupos props={props} caminho={caminho} />
         </div>
@@ -176,7 +178,7 @@ export function Navegacao(props: Props) {
 
       <nav
         aria-label="Atalhos"
-        className="fixed inset-x-0 bottom-0 z-40 grid border-t border-borda/60 bg-superficie pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 grid border-t border-borda/60 bg-superficie pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
         style={{ gridTemplateColumns: `repeat(${barra.length}, minmax(0, 1fr))` }}
       >
         {barra.map((item) => {

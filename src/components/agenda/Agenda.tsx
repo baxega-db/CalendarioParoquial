@@ -203,6 +203,9 @@ export function Agenda(props: Props) {
 
       {visao === "semana" && (
         <>
+          <Link href={`/imprimir?d=${props.inicioPeriodo}`} className="botao botao-secundario">
+            <Icone nome="impressora" /> Imprimir esta semana
+          </Link>
           <div className="space-y-5 md:hidden">
             {Array.from({ length: 7 }, (_, i) => somarDias(props.inicioPeriodo, i)).map((dia) => (
               <section key={dia}>

@@ -100,6 +100,15 @@ atualize a *Site URL* do Supabase com o endereço final.
   na tela de cada reserva).
 - Pedido confirmado que tinha "É recorrente? Sim" oferece o atalho "Criar as próximas datas".
 
-## Próxima fase
+## Fase 3 (extras)
 
-- **Fase 3**: impressão da semana, modo TV, domínio da paróquia.
+- **Imprimir a semana** (`/imprimir`, também no botão da visão Semana): folha A4 deitada
+  para o mural, só com reservas confirmadas, legenda das salas e rodapé com o site e o
+  WhatsApp da secretaria.
+- **Modo TV** (`/tv`): agenda do dia em tela cheia, letras grandes, relógio, "AGORA" no
+  que está acontecendo e salas livres. Atualiza sozinha a cada minuto e pede para a tela
+  não apagar. Depois do último evento do dia, mostra o dia seguinte.
+- **Domínio da paróquia**: o banco e o login continuam no Supabase; só muda o endereço.
+  O caminho mais simples é um subdomínio (ex.: `agenda.paroquia.org.br`) apontado para a
+  Vercel. Depois, atualizar `NEXT_PUBLIC_SITE_URL` na Vercel e a *Site URL* / *Redirect
+  URLs* no Supabase.

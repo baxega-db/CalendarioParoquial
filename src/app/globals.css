@@ -48,6 +48,23 @@ body {
   line-height: 1.5;
 }
 
+/* Impressão: folha deitada, cores das salas preservadas. */
+@page {
+  size: A4 landscape;
+  margin: 10mm;
+}
+
+@media print {
+  html {
+    font-size: 10pt;
+  }
+  body {
+    background: #fff;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
 :focus-visible {
   outline: 3px solid #f59e0b;
   outline-offset: 2px;
