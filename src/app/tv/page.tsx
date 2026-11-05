@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { listarBloqueadas, listarEventos, listarMissas, listarSalas, obterConfig } from "@/lib/dados";
-import { DURACAO_MISSA_MIN } from "@/lib/missas";
+import { agruparPorDia, DURACAO_MISSA_MIN } from "@/lib/missas";
 import type { EventoPublico, Sala } from "@/lib/tipos";
-import { formatarDataLonga, formatarHora, hojeISO, horaParaMinutos, intervaloDias, partesLocais, somarDias } from "@/lib/tempo";
+import { DIAS_CURTOS, diaDaSemana, formatarDataLonga, formatarHora, hojeISO, horaParaMinutos, intervaloDias, partesLocais, somarDias } from "@/lib/tempo";
 import { formatarTelefone } from "@/lib/whatsapp";
 import { ControlesTV } from "./ControlesTV";
 
 export const metadata: Metadata = { title: "Modo TV" };
 
 const MAXIMO_NA_TELA = 8;
+// Missas de hoje até o mesmo dia da semana que vem (ex.: quarta a quarta).
+const DIAS_DE_MISSA = 8;
 
 function Linha({ ev, sala, agora }: { ev: EventoPublico; sala: Sala; agora: Date }) {
   const acontecendo = new Date(ev.inicio) <= agora;
@@ -43,16 +45,25 @@ export default async function PaginaTV() {
   const hoje = hojeISO();
   const amanha = somarDias(hoje, 1);
   const { de, ate } = intervaloDias(hoje, 2);
-  const [salas, eventos, config, bloqueadas, missasHoje] = await Promise.all([
+  const [salas, eventos, config, bloqueadas, missasSemana] = await Promise.all([
     listarSalas(),
     listarEventos(de, ate),
     obterConfig(),
     listarBloqueadas(hoje, somarDias(hoje, 2)),
-    listarMissas(hoje, amanha),
+    listarMissas(hoje, somarDias(hoje, DIAS_DE_MISSA)),
   ]);
   const minutosAgora = partesLocais(agora).minutos;
-  // Missas que ainda não terminaram (contamos 1 hora de duração).
-  const missas = missasHoje.filter((m) => horaParaMinutos(m.hora) + DURACAO_MISSA_MIN > minutosAgora);
+  // Hoje, só as missas que ainda não terminaram (contamos 1 hora de duração).
+  const missasPorDia = agruparPorDia(
+    missasSemana.filter((m) => m.data !== hoje || horaParaMinutos(m.hora) + DURACAO_MISSA_MIN > minutosAgora),
+  );
+  // O local mais comum fica no título; nas missas, só aparece quando é outro.
+  const contagemLocais = new Map<string, number>();
+  missasSemana.forEach((m) => contagemLocais.set(m.local, (contagemLocais.get(m.local) ?? 0) + 1));
+  const localPrincipal = [...contagemLocais.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const variosLocais = contagemLocais.size > 1;
+  const nomeDia = (d: string) =>
+    d === hoje ? "Hoje" : d === amanha ? "Amanhã" : `${DIAS_CURTOS[diaDaSemana(d)]} ${Number(d.slice(8))}/${Number(d.slice(5, 7))}`;
 
   const mapaSalas = new Map(salas.map((s) => [s.id, s]));
   const confirmados = eventos.filter((e) => e.situacao === "confirmada" && mapaSalas.has(e.sala_id));
@@ -74,20 +85,28 @@ export default async function PaginaTV() {
   return (
     <div
       className="flex min-h-dvh flex-col gap-[1em] bg-[#0b1730] p-[1.2em] text-white"
-      style={{ fontSize: "clamp(18px, 1.7vw, 44px)" }}
+      style={{ fontSize: "clamp(18px, 1.55vw, 40px)" }}
     >
       <header className="flex flex-wrap items-end justify-between gap-[1em] border-b-2 border-white/30 pb-[0.6em]">
-        <div>
-          <p className="text-[1.1em] font-semibold text-white/80">{config.nome_paroquia}</p>
-          <h1 className="text-[1.9em] font-extrabold leading-tight first-letter:uppercase">
-            Hoje, {formatarDataLonga(hoje)}
-          </h1>
+        <div className="flex items-center gap-[0.8em]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-paroquia.jpg"
+            alt={`Brasão da ${config.nome_paroquia}`}
+            className="h-[3.6em] w-[3.6em] shrink-0 rounded-full bg-white object-contain p-[0.25em]"
+          />
+          <div>
+            <p className="text-[1.1em] font-semibold text-white/80">{config.nome_paroquia}</p>
+            <h1 className="text-[1.9em] font-extrabold leading-tight first-letter:uppercase">
+              Hoje, {formatarDataLonga(hoje)}
+            </h1>
+          </div>
         </div>
         <ControlesTV />
       </header>
 
-      <div className="grid flex-1 gap-[1.2em] lg:grid-cols-[2fr_1fr]">
-        <section>
+      <div className="grid flex-1 content-start gap-[1.2em] lg:grid-cols-[1fr_1.25fr]">
+        <section className="lg:col-start-1 lg:row-start-1">
           <h2 className="mb-[0.5em] text-[1.4em] font-extrabold">
             {mostrarAmanha ? `Amanhã, ${formatarDataLonga(amanha)}` : "Programação de hoje"}
           </h2>
@@ -107,27 +126,44 @@ export default async function PaginaTV() {
           )}
         </section>
 
-        <section className="space-y-[1em]">
-          {missas.length > 0 && (
-            <div className="rounded-[0.5em] border-2 border-amber-200/70 bg-amber-100/10 p-[0.6em]">
-              <h2 className="mb-[0.3em] text-[1.4em] font-extrabold">Missas de hoje</h2>
-              <ul className="space-y-[0.3em]">
-                {missas.map((m) => {
-                  const agoraMissa = horaParaMinutos(m.hora) <= minutosAgora;
-                  return (
-                    <li key={m.chave} className="flex flex-wrap items-baseline gap-x-[0.5em]">
-                      <span className="text-[1.3em] font-extrabold tabular-nums">{formatarHora(m.hora)}</span>
-                      <span className="font-semibold">{m.local}</span>
-                      {m.descricao && <span className="text-white/80">({m.descricao})</span>}
-                      {agoraMissa && (
-                        <span className="rounded-[0.3em] bg-amber-300 px-[0.4em] font-extrabold text-black">AGORA</span>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+        <section className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <h2 className="text-[1.4em] font-extrabold">Missas</h2>
+          {localPrincipal && (
+            <p className="mb-[0.5em] text-white/80">
+              {variosLocais ? `Na ${localPrincipal}, salvo indicação` : `Na ${localPrincipal}`}
+            </p>
           )}
+          {missasPorDia.size === 0 ? (
+            <p>Nenhuma missa cadastrada para os próximos dias.</p>
+          ) : (
+            <ul className="space-y-[0.35em]">
+              {[...missasPorDia.entries()].map(([dia, missas]) => (
+                <li
+                  key={dia}
+                  className={`flex gap-[0.6em] rounded-[0.5em] px-[0.5em] py-[0.3em] ${dia === hoje ? "border-2 border-amber-200/80 bg-amber-100/15" : "bg-white/5"}`}
+                >
+                  <span className="w-[5.2em] shrink-0 font-extrabold">{nomeDia(dia)}</span>
+                  <span className="flex flex-wrap gap-x-[0.9em] gap-y-[0.1em]">
+                    {missas.map((m) => {
+                      const acontecendo = dia === hoje && horaParaMinutos(m.hora) <= minutosAgora;
+                      return (
+                        <span key={m.chave} className="whitespace-nowrap">
+                          <strong className="text-[1.15em] tabular-nums">{formatarHora(m.hora)}</strong>
+                          {m.local !== localPrincipal && <span className="text-amber-200"> ({m.local})</span>}
+                          {acontecendo && (
+                            <span className="ml-[0.3em] rounded-[0.3em] bg-amber-300 px-[0.35em] font-extrabold text-black">AGORA</span>
+                          )}
+                        </span>
+                      );
+                    })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="lg:col-start-1 lg:row-start-2">
           <div>
           <h2 className="mb-[0.5em] text-[1.4em] font-extrabold">Salas livres agora</h2>
           {livres.length === 0 ? (
