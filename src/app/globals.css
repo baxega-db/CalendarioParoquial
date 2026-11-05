@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/* Paleta de alto contraste: texto escuro sobre fundo claro. */
+:root {
+  --fundo: #f6f4ef;
+  --superficie: #ffffff;
+  --texto: #111111;
+  --texto-suave: #3b3b3b; /* ainda passa folgado no contraste AA */
+  --borda: #8a8a8a;
+  --primaria: #1e3a8a;
+  --primaria-escura: #172554;
+  --sucesso: #14532d;
+  --sucesso-fundo: #dcfce7;
+  --aviso: #713f12;
+  --aviso-fundo: #fef3c7;
+  --perigo: #7f1d1d;
+  --perigo-fundo: #fee2e2;
+  --whatsapp: #15803d;
+  --escala: 1; /* alterada pelo botão A+ / A− */
+}
+
+@theme inline {
+  --color-fundo: var(--fundo);
+  --color-superficie: var(--superficie);
+  --color-texto: var(--texto);
+  --color-suave: var(--texto-suave);
+  --color-borda: var(--borda);
+  --color-primaria: var(--primaria);
+  --color-primaria-escura: var(--primaria-escura);
+  --color-sucesso: var(--sucesso);
+  --color-sucesso-fundo: var(--sucesso-fundo);
+  --color-aviso: var(--aviso);
+  --color-aviso-fundo: var(--aviso-fundo);
+  --color-perigo: var(--perigo);
+  --color-perigo-fundo: var(--perigo-fundo);
+  --color-whatsapp: var(--whatsapp);
+}
+
+/* 1rem = 18px na escala normal: nenhum texto do corpo fica abaixo disso. */
+html {
+  font-size: calc(18px * var(--escala));
+}
+
+body {
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+@layer components {
+  .botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0.6rem 1.1rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: center;
+    border: 2px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .botao:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .botao-primario {
+    background: var(--primaria);
+    color: #fff;
+  }
+  .botao-primario:hover:not(:disabled) {
+    background: var(--primaria-escura);
+  }
+  .botao-secundario {
+    background: var(--superficie);
+    color: var(--primaria);
+    border-color: var(--primaria);
+  }
+  .botao-secundario:hover:not(:disabled) {
+    background: #eef2ff;
+  }
+  .botao-perigo {
+    background: var(--superficie);
+    color: var(--perigo);
+    border-color: var(--perigo);
+  }
+  .botao-whatsapp {
+    background: var(--whatsapp);
+    color: #fff;
+  }
+  .rotulo {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+  .campo {
+    display: block;
+    width: 100%;
+    min-height: 52px;
+    padding: 0.6rem 0.8rem;
+    font-size: 1rem;
+    background: var(--superficie);
+    color: var(--texto);
+    border: 2px solid var(--borda);
+    border-radius: 0.6rem;
+  }
+  .campo:focus {
+    border-color: var(--primaria);
+  }
+  .campo[aria-invalid="true"] {
+    border-color: var(--perigo);
+  }
+  .cartao {
+    background: var(--superficie);
+    border: 1px solid #d4d4d4;
+    border-radius: 1rem;
+    padding: 1rem;
+  }
+  .erro-campo {
+    color: var(--perigo);
+    font-weight: 700;
+    margin-top: 0.3rem;
+  }
+  .titulo-pagina {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+  /* Evento aguardando confirmação: tracejado e em tom mais claro. */
+  .evento-pendente {
+    border-style: dashed !important;
+    background-image: repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.0) 0 10px,
+      rgba(0, 0, 0, 0.05) 10px 20px
+    );
+  }
+}
