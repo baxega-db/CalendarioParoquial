@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { listarBloqueadas, listarEventos, listarMissas, listarSalas, obterConfig } from "@/lib/dados";
+import { listarBloqueadas, listarEventos, listarMissas, listarSalas, listarSantos, obterConfig, santoDoDia } from "@/lib/dados";
 import { agruparPorDia, DURACAO_MISSA_MIN } from "@/lib/missas";
 import type { EventoPublico, Sala } from "@/lib/tipos";
 import { DIAS_CURTOS, diaDaSemana, formatarDataLonga, formatarHora, hojeISO, horaParaMinutos, intervaloDias, partesLocais, somarDias } from "@/lib/tempo";
@@ -45,13 +45,15 @@ export default async function PaginaTV() {
   const hoje = hojeISO();
   const amanha = somarDias(hoje, 1);
   const { de, ate } = intervaloDias(hoje, 2);
-  const [salas, eventos, config, bloqueadas, missasSemana] = await Promise.all([
+  const [salas, eventos, config, bloqueadas, missasSemana, santos] = await Promise.all([
     listarSalas(),
     listarEventos(de, ate),
     obterConfig(),
     listarBloqueadas(hoje, somarDias(hoje, 2)),
     listarMissas(hoje, somarDias(hoje, DIAS_DE_MISSA)),
+    listarSantos(),
   ]);
+  const santo = santoDoDia(santos, hoje);
   const minutosAgora = partesLocais(agora).minutos;
   // Hoje, só as missas que ainda não terminaram (contamos 1 hora de duração).
   const missasPorDia = agruparPorDia(
@@ -84,8 +86,10 @@ export default async function PaginaTV() {
 
   return (
     <div
-      className="flex min-h-dvh flex-col gap-[1em] bg-[#0b1730] p-[1.2em] text-white"
-      style={{ fontSize: "clamp(18px, 1.55vw, 40px)" }}
+      id="tela-tv"
+      className="flex min-h-dvh flex-col gap-[0.8em] bg-[#0b1730] px-[1.2em] py-[0.9em] text-white"
+      // --ajuste-tv diminui a letra quando o conteúdo do dia não cabe na tela (ControlesTV).
+      style={{ fontSize: "calc(clamp(18px, 1.55vw, 40px) * var(--ajuste-tv, 1))" }}
     >
       <header className="flex flex-wrap items-end justify-between gap-[1em] border-b-2 border-white/30 pb-[0.6em]">
         <div className="flex items-center gap-[0.8em]">
@@ -100,12 +104,17 @@ export default async function PaginaTV() {
             <h1 className="text-[1.9em] font-extrabold leading-tight first-letter:uppercase">
               Hoje, {formatarDataLonga(hoje)}
             </h1>
+            {santo && (
+              <p className="line-clamp-2 text-[1.15em] text-amber-100">
+                <strong>Santo do dia:</strong> {santo}
+              </p>
+            )}
           </div>
         </div>
         <ControlesTV />
       </header>
 
-      <div className="grid flex-1 content-start gap-[1.2em] lg:grid-cols-[1fr_1.25fr]">
+      <div className="grid flex-1 content-start gap-x-[1.2em] gap-y-[0.8em] lg:grid-cols-[1fr_1.25fr]">
         <section className="lg:col-start-1 lg:row-start-1">
           <h2 className="mb-[0.5em] text-[1.4em] font-extrabold">
             {mostrarAmanha ? `Amanhã, ${formatarDataLonga(amanha)}` : "Programação de hoje"}
@@ -169,9 +178,9 @@ export default async function PaginaTV() {
           {livres.length === 0 ? (
             <p>Todas as salas estão ocupadas.</p>
           ) : (
-            <ul className="space-y-[0.4em]">
+            <ul className="grid gap-[0.4em] sm:grid-cols-2">
               {livres.map(({ sala, proximo }) => (
-                <li key={sala.id} className="rounded-[0.5em] border-l-[0.5em] bg-white/5 p-[0.5em]" style={{ borderLeftColor: sala.cor }}>
+                <li key={sala.id} className="rounded-[0.5em] border-l-[0.5em] bg-white/5 px-[0.5em] py-[0.3em]" style={{ borderLeftColor: sala.cor }}>
                   <p className="text-[1.15em] font-bold">{sala.nome}</p>
                   <p className="text-white/85">
                     {proximo ? `Livre até as ${formatarHora(partesLocais(proximo.inicio).hora)}` : "Livre pelo resto do dia"}

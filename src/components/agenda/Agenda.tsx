@@ -49,6 +49,7 @@ type Props = {
   fechamento: string;
   bloqueadas: Record<string, string>; // data -> motivo
   missas: Missa[];
+  santos: Record<string, string>; // data -> santo do dia
 };
 
 export function Agenda(props: Props) {
@@ -155,6 +156,11 @@ export function Agenda(props: Props) {
       </div>
 
       <h2 className="text-2xl font-extrabold first-letter:uppercase">{titulo}</h2>
+      {(visao === "hoje" || visao === "sala") && props.santos[data] && (
+        <p className="text-lg">
+          <strong>Santo do dia:</strong> {props.santos[data]}
+        </p>
+      )}
       <p className="font-semibold text-suave">
         Horário de funcionamento: das {formatarHora(props.abertura)} às {formatarHora(props.fechamento)}
       </p>
@@ -220,6 +226,11 @@ export function Agenda(props: Props) {
                   {formatarDataLonga(dia)}
                   {dia === hoje && " (hoje)"}
                 </h3>
+                {props.santos[dia] && (
+                  <p className="mb-1">
+                    <strong>Santo do dia:</strong> {props.santos[dia]}
+                  </p>
+                )}
                 {props.bloqueadas[dia] && <p className="mb-2 font-bold text-aviso">Data bloqueada: {props.bloqueadas[dia]}</p>}
                 {missasPorDia.get(dia) && <p className="mb-2 font-bold text-[#7c2d12]">Missas: {resumoDoDia(missasPorDia.get(dia)!)}</p>}
                 <ListaEventos eventos={porDia.get(dia) ?? []} aoAbrir={setAberto} vazio="Nada marcado." />
@@ -238,6 +249,11 @@ export function Agenda(props: Props) {
                 titulo: (
                   <Link href={link("hoje", dia)} className={`underline-offset-2 hover:underline ${dia === hoje ? "text-primaria" : ""}`}>
                     {DIAS_CURTOS[diaDaSemana(dia)]} {Number(dia.slice(8))}
+                    {props.santos[dia] && (
+                      <span className="line-clamp-2 block font-normal" title={props.santos[dia]}>
+                        {props.santos[dia]}
+                      </span>
+                    )}
                     {props.bloqueadas[dia] && <span className="block font-semibold text-aviso">{props.bloqueadas[dia]}</span>}
                     {missasPorDia.get(dia) && (
                       <span className="block font-semibold text-[#7c2d12]">Missas: {resumoDoDia(missasPorDia.get(dia)!)}</span>

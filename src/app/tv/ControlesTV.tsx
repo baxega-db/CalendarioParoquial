@@ -15,6 +15,33 @@ export function ControlesTV() {
   const [agora, setAgora] = useState<Date | null>(null);
   const [telaCheia, setTelaCheia] = useState(false);
 
+  // Diminui a letra aos poucos até tudo caber na tela, sem passar de 25% menor.
+  useEffect(() => {
+    const tela = document.getElementById("tela-tv");
+    if (!tela) return;
+    let quadro = 0;
+    const ajustar = () => {
+      cancelAnimationFrame(quadro);
+      quadro = requestAnimationFrame(() => {
+        let escala = 1;
+        tela.style.setProperty("--ajuste-tv", "1");
+        while (document.documentElement.scrollHeight > window.innerHeight + 1 && escala > 0.75) {
+          escala = Math.round((escala - 0.03) * 100) / 100;
+          tela.style.setProperty("--ajuste-tv", String(escala));
+        }
+      });
+    };
+    ajustar();
+    const observador = new MutationObserver(ajustar);
+    observador.observe(tela, { childList: true, subtree: true, characterData: true });
+    window.addEventListener("resize", ajustar);
+    return () => {
+      cancelAnimationFrame(quadro);
+      observador.disconnect();
+      window.removeEventListener("resize", ajustar);
+    };
+  }, []);
+
   useEffect(() => {
     const relogio = setInterval(() => setAgora(new Date()), 1000);
     const atualizar = setInterval(() => router.refresh(), ATUALIZAR_A_CADA_MS);

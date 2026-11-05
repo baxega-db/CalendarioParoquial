@@ -29,6 +29,7 @@ function montarItens({ usuario, pendentes }: Props) {
         { href: "/painel", texto: "Pedidos pendentes", icone: "pedidos", contador: pendentes },
         { href: "/painel/reservas", texto: "Reservas", icone: "reservas" },
         { href: "/painel/missas", texto: "Missas", icone: "agenda" },
+        { href: "/painel/santos", texto: "Santo do dia", icone: "pessoas" },
         { href: "/painel/historico", texto: "Histórico", icone: "relogio" },
         { href: "/imprimir", texto: "Imprimir a semana", icone: "impressora" },
         { href: "/tv", texto: "Modo TV", icone: "tv" },

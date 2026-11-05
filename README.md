@@ -109,6 +109,14 @@ atualize a *Site URL* do Supabase com o endereço final.
   ("Missas de hoje"), na folha impressa e na página pública *Horários de missa* (`/missas`).
 - As missas não ocupam salas; ficam separadas das reservas.
 
+## Santo do dia
+
+- **Cadastro** (Secretaria > *Santo do dia*): um texto por dia do ano, igual em todos os
+  anos, editado mês a mês. A lista inicial foi importada de
+  blog.comfebrasil.com.br/santo-do-dia-calendario-hagiologico (o site não traz o 29/02).
+- **Onde aparece**: na agenda (Dia, Por sala e Semana) e no modo TV, abaixo da data.
+  Não sai na folha impressa.
+
 ## Fase 3 (extras)
 
 - **Imprimir a semana** (`/imprimir`, também no botão da visão Semana): folha A4 deitada

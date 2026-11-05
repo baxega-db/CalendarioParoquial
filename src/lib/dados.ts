@@ -108,3 +108,14 @@ export async function listarMissas(de: string, ate: string, incluirCanceladas = 
   ]);
   return missasNoPeriodo(padroes, (avulsas ?? []) as MissaAvulsa[], de, ate, incluirCanceladas);
 }
+
+// Santo do dia: o calendário é igual todo ano, então lemos os 366 dias de uma vez.
+export const listarSantos = cache(async (): Promise<Map<string, string>> => {
+  const supabase = await criarClienteServidor();
+  const { data } = await supabase.from("santos_do_dia").select("mes, dia, nome");
+  return new Map((data ?? []).map((s) => [`${s.mes}-${s.dia}`, s.nome as string]));
+});
+
+export function santoDoDia(santos: Map<string, string>, data: string) {
+  return santos.get(`${Number(data.slice(5, 7))}-${Number(data.slice(8))}`) ?? null;
+}
