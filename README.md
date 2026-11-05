@@ -3,6 +3,9 @@
 Agenda pública das salas, pedido de sala com aviso pelo WhatsApp e painel da secretaria.
 Requisitos completos em [REQUISITOS.md](REQUISITOS.md). Esta versão entrega a **Fase 1**.
 
+**Site publicado:** https://calendariosaopedro.vercel.app — cada envio para o ramo
+`main` do GitHub publica uma nova versão automaticamente na Vercel.
+
 ## O que já funciona (Fase 1)
 
 - **Agenda pública, sem login**: Dia, Por sala, Semana e Mês; cores com o nome da sala;
